@@ -1,0 +1,326 @@
+[
+  {
+    "path": "/api/v1/admin/catalog/categories",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/catalog/categories",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/catalog/categories/{category_id}",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/admin/catalog/categories/{category_id}/archive",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/catalog/products",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/catalog/products",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/catalog/products/{product_id}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/catalog/products/{product_id}",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/admin/catalog/products/{product_id}/archive",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/catalog/products/{product_id}/publish",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/inventory/stock-items",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/inventory/stock-items/{variant_id}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/inventory/stock-items/{variant_id}/adjustments",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/orders",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/orders/{order_id}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/orders/{order_id}/cancellations",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/orders/{order_id}/shipments",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/payment-providers/momo",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/payment-providers/momo",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/admin/payment-providers/vietqr",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/payment-providers/vietqr",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/admin/payment-reconciliation-items",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/payments/{payment_id}/vietqr-confirmations",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/pricing/price-lists",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/pricing/price-lists",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/pricing/price-lists/{price_list_id}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/pricing/price-lists/{price_list_id}",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/admin/pricing/price-lists/{price_list_id}/archive",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/refunds/{refund_id}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/refunds/{refund_id}/momo-executions",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/refunds/{refund_id}/vietqr-settlements",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/shipments/{shipment_id}",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/admin/shipments/{shipment_id}/completions",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/shipments/{shipment_id}/dispatches",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/admin/shipping/rule",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/shipping/rule",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/auth/me",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/auth/registrations",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/auth/sessions",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/auth/sessions/current",
+    "method": "DELETE"
+  },
+  {
+    "path": "/api/v1/auth/sessions/refresh",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/auth/social/continue",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/auth/social/exchanges",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/auth/social/{provider}/callback",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/auth/social/{provider}/links",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/auth/social/{provider}/sessions",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/cart",
+    "method": "DELETE"
+  },
+  {
+    "path": "/api/v1/cart",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/cart",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/cart/lines/{variant_id}",
+    "method": "DELETE"
+  },
+  {
+    "path": "/api/v1/cart/lines/{variant_id}",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/catalog/products",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/catalog/products/{slug}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/checkout",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/customer/addresses",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/customer/addresses",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/customer/addresses/{address_id}",
+    "method": "DELETE"
+  },
+  {
+    "path": "/api/v1/customer/addresses/{address_id}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/customer/addresses/{address_id}",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/customer/profile",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/customer/profile",
+    "method": "PUT"
+  },
+  {
+    "path": "/api/v1/guest-sessions",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/guest-sessions/current",
+    "method": "DELETE"
+  },
+  {
+    "path": "/api/v1/guest-sessions/current",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/guest-sessions/refresh",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/memberships",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/memberships",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/memberships/{user_id}",
+    "method": "PATCH"
+  },
+  {
+    "path": "/api/v1/memberships/{user_id}/permissions",
+    "method": "PATCH"
+  },
+  {
+    "path": "/api/v1/onboarding/stores",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/orders/{order_id}",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/orders/{order_id}/cancellations",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/orders/{order_id}/payments/momo/attempts",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/orders/{order_id}/payments/vietqr/instructions",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/payment-webhooks/momo/{callback_token}",
+    "method": "POST"
+  },
+  {
+    "path": "/api/v1/store",
+    "method": "GET"
+  },
+  {
+    "path": "/health/live",
+    "method": "GET"
+  },
+  {
+    "path": "/health/ready",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/storefront",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/storefront",
+    "method": "GET"
+  },
+  {
+    "path": "/api/v1/admin/storefront",
+    "method": "PUT"
+  }
+]

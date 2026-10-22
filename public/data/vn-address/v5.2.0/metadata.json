@@ -1,0 +1,18 @@
+{
+  "version": "v5.2.0",
+  "revision": "62b1abdfe39625289c37a58ef6678e9db3d37f84",
+  "source": "https://raw.githubusercontent.com/thanglequoc/vietnamese-provinces-database/62b1abdfe39625289c37a58ef6678e9db3d37f84/json/simplified_json_generated_data_vn_units.json",
+  "source_sha256": "f624138116bde151c860cbd25a84cd6b9b38250e8a049ed371c55dee729ac286",
+  "province_count": 34,
+  "ward_count": 3321,
+  "effective_through": "2026-09-20",
+  "checked_on": "2026-10-07",
+  "official_register": "https://danhmuchanhchinh.nso.gov.vn/NghiDinh.aspx",
+  "resolutions": [
+    "388/NQ-UBTVQH16",
+    "39/2026/QH16",
+    "36/2026/QH16"
+  ],
+  "license": "MIT",
+  "copyright": "Copyright (c) 2021 Thang Le Quoc"
+}
