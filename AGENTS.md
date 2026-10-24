@@ -8,12 +8,12 @@ Before implementation, read these sibling files:
 - ../e-commerce/AGENTS.md
 - ../e-commerce/docs/product-requirements.md
 - ../e-commerce/docs/architecture.md
-- ../e-commerce/docs/development-status.md
+- ../e-commerce/TASKS.md
 - ../e-commerce/docs/testing-strategy.md
 - tasks/README.md and the applicable canonical task record; read sibling backend tasks only when they are relevant dependencies
 - ../e-commerce/api/openapi.json
 
-Keep frontend-owned task records in this folder's tasks/ directory only. Backend-owned tasks remain in ../e-commerce/tasks/. Mixed work has one canonical record in the repository owning the primary outcome; record sibling dependencies there and link it instead of copying it. Task numbers are local to each repository.
+Keep frontend-owned task records in this folder's tasks/ directory only. Backend-owned tasks remain in ../e-commerce/TASKS.md. Mixed work has one canonical record in the repository owning the primary outcome; record sibling dependencies there and link it instead of copying it. Task numbers are local to each repository.
 
 Do not apply the delivery workflow automatically. Invoke the sibling project's delivery skills only when the user explicitly requests them. Each ec-* stage stops at its boundary; continue preserves that boundary. Only an explicit $ecommerce-delivery or full-workflow request selects the complete sequence. Read ../e-commerce/docs/development-workflow.md when it is explicitly selected.
 

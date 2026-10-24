@@ -1,6 +1,6 @@
 # Frontend tasks
 
-Keep frontend-owned tasks only in this directory. [Backend tasks](../../e-commerce/tasks/README.md) remain in the backend repository. Mixed work has one canonical record in the repository owning the primary outcome; document sibling dependencies there without copying the record. Numbers are local to each repository, so frontend 020 and backend 020 identify different tasks.
+Keep frontend-owned tasks only in this directory. [Backend tasks](../../e-commerce/TASKS.md) remain in the backend repository. Mixed work has one canonical record in the repository owning the primary outcome; document sibling dependencies there without copying the record. Numbers are local to each repository, so frontend 020 and backend 020 identify different tasks.
 
 | Task | Owner | Current evidence |
 | --- | --- | --- |
