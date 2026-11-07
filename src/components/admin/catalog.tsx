@@ -1,6 +1,7 @@
 "use client";
 
 import { Pager } from "./shared";
+import { AdminProductIdentity } from "./product-identity";
 import { useConfirm } from "@/components/confirm";
 import { useSession } from "@/components/providers";
 import {
@@ -198,7 +199,7 @@ export function CatalogAdminView() {
                 {items.map((p) => (
                   <TableRow key={p.product_id}>
                     <TableCell>
-                      <strong>{p.name}</strong>
+                      <AdminProductIdentity product={p} />
                       <small>{p.slug}</small>
                     </TableCell>
                     <TableCell>
@@ -548,6 +549,7 @@ export function ProductEditor({ productID }: { productID?: string }) {
       <Link href="/admin/products">← Sản phẩm</Link>
       <span className="eyebrow">SẢN PHẨM</span>
       <h1>{value ? `Chỉnh sửa · ${value.name}` : "Thêm sản phẩm"}</h1>
+      {value && <AdminProductIdentity product={value} />}
       <p>Sản phẩm cần biến thể đang bán và giá hiện tại trước khi xuất bản.</p>
       <ActionFeedback action={action} />
       <ErrorNotice error={formError} />

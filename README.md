@@ -44,6 +44,12 @@ The browser smoke covers guest checkout and VietQR instructions, payment confirm
 
 ## UI components
 
+Admin product lists and editors, inventory rows and adjustment forms, price-list previews, and order lists/details show product thumbnails. Inventory and pricing also show product names, variant options, and SKUs. Product details are resolved from the store-scoped admin catalog across all catalog pages, so products beyond the first page can be identified. Missing products or unavailable images use placeholders without hiding stock or order records.
+
+Order names, SKUs, options, quantities, and amounts remain saved order snapshots. Their thumbnails are current catalog previews, not historical images. Image delivery uses the existing media proxy and `MEDIA_BASE_URL`; catalog access denial leaves order snapshots available without thumbnails. `tests/e2e/admin-products.spec.ts` covers product identification, pagination, adjustment payloads, image failures, order snapshots, permission fallback, and responsive layout with synthetic API responses.
+
+Reviewed inventory previews with synthetic products: [desktop](docs/previews/admin-products/inventory-desktop.png) and [phone](docs/previews/admin-products/inventory-phone.png). Run the browser checks against a running frontend with `ADMIN_PRODUCTS_ORIGIN` set to its origin (defaults to `http://localhost:3012`).
+
 The storefront and admin screens use app-owned shadcn/ui components, Radix interactions, and Tailwind CSS 4. See [UI component ownership and migration](docs/shadcn-ui.md) for theme tokens, form behavior, and verification.
 
 ## Code formatting

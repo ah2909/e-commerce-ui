@@ -1,6 +1,7 @@
 "use client";
 
 import { Pager } from "./shared";
+import { AdminProductIdentity, useAdminCatalog } from "./product-identity";
 import { useConfirm } from "@/components/confirm";
 import { OrderSummary } from "@/components/order";
 import { useSession } from "@/components/providers";
@@ -33,6 +34,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function OrdersAdminView() {
+  const catalog = useAdminCatalog();
   const { scope, ready } = useSession();
   const [state, setState] = useState<"paid" | "processing" | "shipped" | "">("");
   const query = useInfiniteQuery({
@@ -86,6 +88,18 @@ export function OrdersAdminView() {
                     <TableCell>
                       <strong>{order.order_number}</strong>
                       <small>{order.contact.name}</small>
+                      {order.lines.slice(0, 2).map((line) => (
+                        <div key={line.line_id}>
+                          <AdminProductIdentity
+                            {...catalog.data?.variants.get(line.variant_id)}
+                            snapshot={line}
+                          />
+                          <small>Số lượng: {line.quantity}</small>
+                        </div>
+                      ))}
+                      {order.lines.length > 2 && (
+                        <small>+{order.lines.length - 2} sản phẩm khác</small>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge state={order.state} />
@@ -225,6 +239,7 @@ function ShipmentActions({ order }: { order: Schema["Order"] }) {
 }
 
 export function AdminOrderView({ orderID }: { orderID: string }) {
+  const catalog = useAdminCatalog();
   const confirm = useConfirm();
   const { scope, ready } = useSession();
   const query = useQuery({
@@ -251,7 +266,18 @@ export function AdminOrderView({ orderID }: { orderID: string }) {
       <h1>{order.order_number}</h1>
       <div className="two-columns">
         <section>
-          <OrderSummary order={order} />
+          <OrderSummary
+            order={order}
+            renderLine={(line) => (
+              <div>
+                <AdminProductIdentity
+                  {...catalog.data?.variants.get(line.variant_id)}
+                  snapshot={line}
+                />
+                <small>Số lượng: {line.quantity}</small>
+              </div>
+            )}
+          />
           <ShipmentActions order={order} />
         </section>
         <Card asChild>

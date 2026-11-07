@@ -1,6 +1,7 @@
 "use client";
 
 import { Pager } from "./shared";
+import { AdminProductIdentity, useAdminCatalog } from "./product-identity";
 import { useConfirm } from "@/components/confirm";
 import { useSession } from "@/components/providers";
 import {
@@ -132,6 +133,7 @@ function PriceEditor({ value, close }: { value?: Schema["PricingPriceList"]; clo
 }
 
 export function PricesView() {
+  const catalog = useAdminCatalog();
   const confirm = useConfirm();
   const { scope, ready } = useSession();
   const [editing, setEditing] = useState<Schema["PricingPriceList"] | "new">();
@@ -161,6 +163,7 @@ export function PricesView() {
       <h1>Giá bán cửa hàng</h1>
       <Button onClick={() => setEditing("new")}>Thêm bảng giá</Button>
       <ActionFeedback action={action} />
+      <ErrorNotice error={catalog.error} retry={() => void catalog.refetch()} />
       {editing && (
         <PriceEditor
           key={current ? `${current.price_list_id}:${current.version}` : "new"}
@@ -183,7 +186,10 @@ export function PricesView() {
                 </p>
                 {list.prices.slice(0, 4).map((p) => (
                   <div className="summary-row" key={p.variant_id}>
-                    <small>{p.variant_id}</small>
+                    <AdminProductIdentity
+                      {...catalog.data?.variants.get(p.variant_id)}
+                      variantID={p.variant_id}
+                    />
                     <strong>{money(p.money.amount_minor)}</strong>
                   </div>
                 ))}

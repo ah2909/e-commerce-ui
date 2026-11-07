@@ -10,7 +10,7 @@ import { api, unwrap, type Schema } from "@/lib/api/client";
 import { money, paymentLink } from "@/lib/commerce";
 import { formatAddress } from "@/lib/vn-address";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -26,7 +26,13 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export function OrderSummary({ order }: { order: Schema["Order"] }) {
+export function OrderSummary({
+  order,
+  renderLine,
+}: {
+  order: Schema["Order"];
+  renderLine?: (line: Schema["OrderLine"]) => ReactNode;
+}) {
   return (
     <>
       <Card asChild>
@@ -39,10 +45,14 @@ export function OrderSummary({ order }: { order: Schema["Order"] }) {
           <Badge state={order.state} />
           {order.lines.map((line) => (
             <div className="summary-row" key={line.variant_id}>
-              <span>
-                {line.product_name} × {line.quantity}
-                <small>{Object.values(line.option_values).join(" / ")}</small>
-              </span>
+              {renderLine ? (
+                renderLine(line)
+              ) : (
+                <span>
+                  {line.product_name} × {line.quantity}
+                  <small>{Object.values(line.option_values).join(" / ")}</small>
+                </span>
+              )}
               <span>{money(line.line_total.amount_minor)}</span>
             </div>
           ))}

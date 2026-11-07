@@ -1,6 +1,7 @@
 "use client";
 
 import { Pager } from "./shared";
+import { AdminProductIdentity, useAdminCatalog } from "./product-identity";
 import { useSession } from "@/components/providers";
 import { ActionFeedback, Empty, ErrorNotice, Field, Loading, useAction } from "@/components/ui";
 import { Button } from "@/components/ui/button";
@@ -23,18 +24,8 @@ function StockLookup() {
   const { scope, ready } = useSession();
   const [variantID, setVariantID] = useState("");
   const action = useAction();
-  const products = useInfiniteQuery({
-    queryKey: [...scope, "inventory-products"],
-    enabled: ready,
-    initialPageParam: undefined as string | undefined,
-    queryFn: async ({ pageParam }) =>
-      unwrap(
-        await api.GET("/api/v1/admin/catalog/products", {
-          params: { query: { limit: 25, cursor: pageParam } },
-        }),
-      ),
-    getNextPageParam: (page) => page.next_cursor || undefined,
-  });
+  const products = useAdminCatalog();
+  const selected = products.data?.variants.get(variantID);
   const stock = useQuery({
     queryKey: [...scope, "stock", variantID],
     enabled: ready && !!variantID,
@@ -81,24 +72,18 @@ function StockLookup() {
             <NativeSelectOption value="" disabled>
               Chọn biến thể
             </NativeSelectOption>
-            {products.data.pages
-              .flatMap((p) => p.products)
-              .flatMap((p) =>
-                p.variants
-                  .filter((v) => v.status === "active")
-                  .map((v) => (
-                    <NativeSelectOption key={v.variant_id} value={v.variant_id}>
-                      {p.name} · {v.sku}
-                    </NativeSelectOption>
-                  )),
-              )}
+            {products.data.products.flatMap((p) =>
+              p.variants
+                .filter((v) => v.status === "active")
+                .map((v) => (
+                  <NativeSelectOption key={v.variant_id} value={v.variant_id}>
+                    {p.name} · {Object.values(v.option_values).join(" / ")} · {v.sku}
+                  </NativeSelectOption>
+                )),
+            )}
           </NativeSelect>
         </Label>
-        <Pager
-          next={products.data.pages.at(-1)?.next_cursor}
-          load={() => void products.fetchNextPage()}
-          pending={products.isFetchingNextPage}
-        />
+        {selected && <AdminProductIdentity {...selected} />}
         {variantID &&
           (stock.isPending ? (
             <Loading />
@@ -128,20 +113,26 @@ function StockLookup() {
   );
 }
 
-function StockRow({ stock }: { stock: Schema["InventoryStockItem"] }) {
+function StockRow({
+  stock,
+  identity,
+}: {
+  stock: Schema["InventoryStockItem"];
+  identity?: { product: Schema["CatalogProduct"]; variant: Schema["CatalogVariant"] };
+}) {
   const [editing, setEditing] = useState(false);
   const action = useAction();
   return (
     <>
       <TableRow>
         <TableCell>
-          <small>{stock.variant_id}</small>
+          <AdminProductIdentity {...identity} variantID={stock.variant_id} />
         </TableCell>
         <TableCell>{stock.on_hand}</TableCell>
         <TableCell>{stock.reserved}</TableCell>
         <TableCell>{stock.available}</TableCell>
         <TableCell>
-          <Button variant="outline" onClick={() => setEditing(!editing)}>
+          <Button variant="outline" onClick={() => setEditing(!editing)} aria-expanded={editing}>
             Điều chỉnh
           </Button>
         </TableCell>
@@ -171,6 +162,7 @@ function StockRow({ stock }: { stock: Schema["InventoryStockItem"] }) {
                 }}
               >
                 <h3>Điều chỉnh tồn kho</h3>
+                <AdminProductIdentity {...identity} variantID={stock.variant_id} />
                 <Field
                   label="Thay đổi số lượng (+/-)"
                   name="quantity_delta"
@@ -192,6 +184,7 @@ function StockRow({ stock }: { stock: Schema["InventoryStockItem"] }) {
 
 export function InventoryView() {
   const { scope, ready } = useSession();
+  const catalog = useAdminCatalog();
   const query = useInfiniteQuery({
     queryKey: [...scope, "admin-stock"],
     enabled: ready,
@@ -231,7 +224,11 @@ export function InventoryView() {
               </TableHeader>
               <TableBody>
                 {stocks.map((s) => (
-                  <StockRow key={s.variant_id} stock={s} />
+                  <StockRow
+                    key={s.variant_id}
+                    stock={s}
+                    identity={catalog.data?.variants.get(s.variant_id)}
+                  />
                 ))}
               </TableBody>
             </Table>
