@@ -48,7 +48,22 @@ const product = (
 const products = [
   product("nike", "Nike Tiempo", "Nike", 2000000),
   product("puma", "Puma Future", "Puma", 3000000),
-  product("arsenal", "Arsenal Home Jersey", "Adidas", 990000, "ao-bong-da"),
+  (() => {
+    const shirt = product("arsenal", "Arsenal Home Jersey", "Adidas", 790000, "ao-bong-da");
+    return {
+      ...shirt,
+      variants: [
+        ...shirt.variants,
+        {
+          ...shirt.variants[0],
+          variant_id: "arsenal-l",
+          sku: "arsenal-l",
+          option_values: { size: "L" },
+          price: { ...shirt.variants[0].price, amount_minor: 850000 },
+        },
+      ],
+    };
+  })(),
 ];
 async function fixtures(
   page: Page,
@@ -75,6 +90,10 @@ async function fixtures(
           ? { products: products.slice(2), next_cursor: null }
           : { products: products.slice(0, 2), next_cursor: "second-page" },
       });
+    const product = products.find(
+      (item) => url.pathname === `/api/v1/catalog/products/${item.slug}`,
+    );
+    if (product) return route.fulfill({ json: product });
     return route.fulfill({ json: {} });
   });
 }
@@ -148,9 +167,43 @@ test("homepage introduces the store using real catalog collections", async ({ pa
   await expect(page.locator(".hero-products")).toBeVisible();
   await expect(page.locator(".store-story")).toContainText("điểm hẹn dành cho người yêu bóng đá");
   await expect(page.locator(".store-facts")).toContainText("3");
-  await expect(page.locator('a[href="/products?category=giay-bong-da"]')).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Mua theo bộ sưu tập" })
+      .getByRole("link", { name: "Giày bóng đá" }),
+  ).toHaveAttribute("href", "/products?category=giay-bong-da");
   await page.setViewportSize({ width: 375, height: 812 });
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
   ).toBeTruthy();
+});
+
+test("a phone shopper can recover a typo, open the filtered variant, and return to results", async ({
+  page,
+}) => {
+  await fixtures(page);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(origin);
+  await page.getByRole("searchbox").fill("Arsneal");
+  await page.getByRole("button", { name: "Tìm", exact: true }).click();
+  await page.getByRole("button", { name: "Tìm “Arsenal”" }).click();
+  await expect(page.locator(".product-card")).toHaveCount(1);
+  const size = page.getByRole("combobox", { name: "Kích cỡ", exact: true });
+  await expect(size).toBeHidden();
+  await expect(page.locator(".product-card")).toBeInViewport();
+
+  await page.getByRole("button", { name: "Lọc", exact: true }).click();
+  await size.selectOption("L");
+  await page.getByLabel("Giá đến (VND)").fill("900000");
+  await page.getByRole("checkbox", { name: "Chỉ xem sản phẩm còn hàng" }).check();
+  await page.getByRole("button", { name: "Lọc (3)", exact: true }).click();
+  const card = page.locator(".product-card");
+  await expect(card.locator(".price")).toHaveText(/850\.000/);
+  await card.click();
+  await expect(page.getByRole("button", { name: "L", exact: true, pressed: true })).toBeVisible();
+  await expect(page.locator(".purchase-panel .price")).toHaveText(/850\.000/);
+  await page.getByRole("link", { name: "Quay lại kết quả" }).click();
+  await expect(page.getByRole("button", { name: "Lọc (3)", exact: true })).toBeVisible();
+  await expect(page.getByRole("searchbox")).toHaveValue("Arsenal");
+  await expect(card).toHaveCount(1);
 });

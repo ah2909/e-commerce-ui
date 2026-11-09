@@ -78,10 +78,12 @@ export function StoreHero({
   appearance,
   preview = false,
   highlights = [],
+  discovery,
 }: {
   appearance: Appearance;
   preview?: boolean;
   highlights?: CatalogProduct[];
+  discovery?: ReactNode;
 }) {
   const a = appearance;
   return (
@@ -90,21 +92,23 @@ export function StoreHero({
         <span className="eyebrow">{a.tagline || "LỰA CHỌN TỪ CỬA HÀNG"}</span>
         <h1>{a.hero_title}</h1>
         <p>{a.hero_text}</p>
-        <div className="actions">
-          {preview ? (
-            <Button asChild>
-              <span className="button">
-                Khám phá sản phẩm <span aria-hidden="true">↗</span>
-              </span>
-            </Button>
-          ) : (
-            <Button asChild>
-              <Link className="button" href="/products">
-                Khám phá sản phẩm <span aria-hidden="true">↗</span>
-              </Link>
-            </Button>
-          )}
-        </div>
+        {discovery ?? (
+          <div className="actions">
+            {preview ? (
+              <Button asChild>
+                <span className="button">
+                  Khám phá sản phẩm <span aria-hidden="true">↗</span>
+                </span>
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link className="button" href="/products">
+                  Khám phá sản phẩm <span aria-hidden="true">↗</span>
+                </Link>
+              </Button>
+            )}
+          </div>
+        )}
         <div className="hero-caption">
           <span className="caption-line" />
           {a.display_name}

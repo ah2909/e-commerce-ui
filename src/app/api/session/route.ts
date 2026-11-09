@@ -6,7 +6,11 @@ export async function GET(request: NextRequest) {
     validateHost(request.headers.get("host"));
   } catch {
     return NextResponse.json(
-      { code: "invalid_host" },
+      {
+        code: "invalid_host",
+        message:
+          "Địa chỉ này chưa được cấu hình cho cửa hàng. Hãy mở tên miền cửa hàng đã cấu hình thay cho localhost.",
+      },
       { status: 404, headers: { "Cache-Control": "no-store" } },
     );
   }

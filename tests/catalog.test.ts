@@ -5,6 +5,7 @@ import {
   filterCatalog,
   priceBound,
   readFilters,
+  suggestCatalogSearch,
   type CatalogProduct,
 } from "../src/lib/catalog";
 
@@ -68,11 +69,36 @@ describe("catalog discovery", () => {
     const products = [nike, arsenal];
     expect(
       filterCatalog(products, { ...emptyFilters, sort: "price-asc" }).map((item) => item.price),
-    ).toEqual([900000, 1500000]);
+    ).toEqual([1200000, 1500000]);
     expect(
       filterCatalog(products, { ...emptyFilters, sort: "price-desc" }).map((item) => item.price),
-    ).toEqual([1500000, 900000]);
+    ).toEqual([1500000, 1200000]);
     expect(products[0]).toBe(nike);
+  });
+  it("selects one variant for the displayed price and availability", () => {
+    expect(filterCatalog([arsenal], emptyFilters)[0]).toMatchObject({
+      price: 1200000,
+      inStock: true,
+      variant: { variant_id: "Arsenal-1" },
+    });
+    expect(filterCatalog([arsenal], { ...emptyFilters, size: "M" })[0]).toMatchObject({
+      price: 900000,
+      inStock: false,
+      variant: { variant_id: "Arsenal-0" },
+    });
+  });
+  it("ranks product names first and suggests a nearby search within the active filters", () => {
+    const other = {
+      ...nike,
+      description: "Áo Arsenal",
+      published_at: "2026-10-23T00:00:00Z",
+    };
+    expect(filterCatalog([other, arsenal], { ...emptyFilters, q: "Arsenal" })[0].product).toBe(
+      arsenal,
+    );
+    const typo = { ...emptyFilters, q: "ao Arsneal", size: "L", stock: "in-stock" };
+    expect(suggestCatalogSearch([other, arsenal], typo)).toBe("ao Arsenal");
+    expect(suggestCatalogSearch([other, arsenal], { ...typo, max: "1000000" })).toBeUndefined();
   });
   it("preserves URL filters and treats invalid money inputs as absent", () => {
     expect(

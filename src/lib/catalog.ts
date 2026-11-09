@@ -19,7 +19,7 @@ export const emptyFilters: CatalogFilters = {
   min: "",
   max: "",
   stock: "",
-  sort: "newest",
+  sort: "",
 };
 export const normalizeSearch = (value: string) =>
   value
@@ -32,6 +32,13 @@ export function readFilters(params: URLSearchParams): CatalogFilters {
   return Object.fromEntries(
     Object.entries(emptyFilters).map(([key, fallback]) => [key, params.get(key) || fallback]),
   ) as CatalogFilters;
+}
+export function catalogQuery(filters: CatalogFilters) {
+  return Object.fromEntries(
+    Object.entries(filters).filter(
+      ([key, value]) => value !== emptyFilters[key as keyof CatalogFilters],
+    ),
+  );
 }
 export function brandOf(product: CatalogProduct): string {
   const value =
@@ -56,21 +63,38 @@ export function priceBound(value: string): number | undefined {
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) ? parsed : undefined;
 }
+export function preferredCatalogVariant(variants: CatalogProduct["variants"]) {
+  let preferred: CatalogProduct["variants"][number] | undefined;
+  for (const variant of variants) {
+    if (
+      !preferred ||
+      (variant.in_stock && !preferred.in_stock) ||
+      (variant.in_stock === preferred.in_stock &&
+        variant.price.amount_minor < preferred.price.amount_minor)
+    ) {
+      preferred = variant;
+    }
+  }
+  return preferred;
+}
 export function filterCatalog(products: CatalogProduct[], filters: CatalogFilters) {
   const minimum = priceBound(filters.min);
   const maximum = priceBound(filters.max);
   const terms = normalizeSearch(filters.q.trim()).split(/\s+/).filter(Boolean);
+  const query = terms.join(" ");
   return products
     .flatMap((product) => {
       const brand = brandOf(product);
       const categories = product.categories || [];
+      const name = normalizeSearch(product.name);
+      const skus = product.variants.map((variant) => normalizeSearch(variant.sku));
       const haystack = normalizeSearch(
         [
           product.name,
           product.description,
           brand,
           ...categories.map((category) => category.name),
-          ...product.variants.map((variant) => variant.sku),
+          ...skus,
         ].join(" "),
       );
       if (
@@ -86,13 +110,23 @@ export function filterCatalog(products: CatalogProduct[], filters: CatalogFilter
           (minimum === undefined || variant.price.amount_minor >= minimum) &&
           (maximum === undefined || variant.price.amount_minor <= maximum),
       );
-      if (!variants.length) return [];
+      const variant = preferredCatalogVariant(variants);
+      if (!variant) return [];
+      const relevance = !query
+        ? 0
+        : skus.includes(query) || name === query
+          ? 3
+          : name.includes(query)
+            ? 2
+            : Number(terms.every((term) => name.includes(term)));
       return [
         {
           product,
           brand,
-          price: Math.min(...variants.map((variant) => variant.price.amount_minor)),
-          inStock: variants.some((variant) => variant.in_stock),
+          variant,
+          price: variant.price.amount_minor,
+          inStock: variant.in_stock,
+          relevance,
         },
       ];
     })
@@ -103,8 +137,39 @@ export function filterCatalog(products: CatalogProduct[], filters: CatalogFilter
         return b.price - a.price || a.product.product_id.localeCompare(b.product.product_id);
       if (filters.sort === "name-asc") return a.product.name.localeCompare(b.product.name, "vi");
       return (
+        (!filters.sort ? b.relevance - a.relevance : 0) ||
         Date.parse(b.product.published_at) - Date.parse(a.product.published_at) ||
         b.product.product_id.localeCompare(a.product.product_id)
       );
     });
+}
+
+function isSingleEdit(term: string, word: string) {
+  if (term === word || Math.abs(term.length - word.length) > 1) return false;
+  const [shorter, longer] = term.length <= word.length ? [term, word] : [word, term];
+  const first = longer.split("").findIndex((char, index) => char !== shorter[index]);
+  if (shorter.length !== longer.length) return longer.slice(first + 1) === shorter.slice(first);
+  if (longer.slice(first + 1) === shorter.slice(first + 1)) return true;
+  return (
+    longer[first] === shorter[first + 1] &&
+    longer[first + 1] === shorter[first] &&
+    longer.slice(first + 2) === shorter.slice(first + 2)
+  );
+}
+
+export function suggestCatalogSearch(products: CatalogProduct[], filters: CatalogFilters) {
+  const terms = filters.q.trim().split(/\s+/);
+  const normalized = terms.map(normalizeSearch);
+  if (!normalized.some((term) => term.length >= 4)) return;
+  for (const { product } of filterCatalog(products, { ...filters, q: "" })) {
+    const words = product.name.match(/[\p{L}\p{N}]+/gu) || [];
+    const name = normalizeSearch(product.name);
+    const missing = normalized.map((term) => !name.includes(term));
+    const index = missing.indexOf(true);
+    if (index < 0 || normalized[index].length < 4 || missing.lastIndexOf(true) !== index) continue;
+    const word = words.find((candidate) =>
+      isSingleEdit(normalized[index], normalizeSearch(candidate)),
+    );
+    if (word) return terms.map((term, position) => (position === index ? word : term)).join(" ");
+  }
 }

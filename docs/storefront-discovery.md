@@ -2,9 +2,9 @@
 
 The account dashboard separates personal information, saved addresses, cart access, and order-tracking guidance. Store management appears in the account dashboard and footer only after `GET /api/v1/store` confirms an `owner`, `admin`, or `staff` membership. Customers, anonymous visitors, unresolved membership checks, and failed checks receive no management link. Backend permissions remain authoritative for every admin operation.
 
-The product page supports accent-insensitive search across product names, descriptions, SKUs, brands, and assigned categories. Filters include brand, collection, size, inclusive minimum/maximum VND price, and stock. Sort options are newest, ascending price, descending price, and name. Filters are reflected in the URL and survive reload; clearing them resets the view.
+The catalog supports accent-insensitive search across product names, descriptions, SKUs, brands, and assigned categories. Filters include brand, collection, size, inclusive minimum/maximum VND price, and stock. Sort options include relevance for searches, newest, ascending price, descending price, and name. Filters are reflected in the URL and survive reload; clearing them resets the view.
 
-Size, price, and stock constraints must all match the same variant. Product-card prices use the cheapest matching variant, so a cheap sold-out size cannot incorrectly satisfy an in-stock price filter. Invalid reversed ranges display a message and no matches. Results display 24 cards at a time, with more results available without losing active filters.
+Size, price, and stock constraints must all match the same variant, so a cheap sold-out size cannot incorrectly satisfy an in-stock price filter. Invalid reversed ranges display a message and no matches. Results display 24 cards at a time, with more results available without losing active filters.
 
 For the current small-store catalog, the UI reads every public API page before filtering or sorting, caches that catalog by tenant/session, and never labels a partially loaded page as complete search results. Failed or repeated cursors produce an error with retry. Large catalogs should eventually move this operation to a bounded server-side search API; this change does not introduce a search index or depend on Kafka.
 
@@ -13,6 +13,14 @@ Brand labels come from assigned `Brand <name>` categories or an explicit `brand`
 The backend public product list and detail now include `categories`, containing only IDs, names, and slugs of active categories assigned to published products in the current store. Draft products and foreign-store labels are excluded. One bounded batch query resolves the labels for each returned page. No schema migration is needed. The OpenAPI contract and generated frontend types include this projection.
 
 The homepage uses merchant appearance content, real catalog photos, collection links, actual catalog counts, a store introduction, a mixed product selection, and shopping guidance. Football-specific introductions are shown when an assigned collection is named `Áo bóng đá`; the merchant's actual category slug is retained for navigation. Other stores receive generic store content. Merchant hero artwork takes precedence; without it, real product photos are used when available, with the existing typographic poster as the empty-catalog fallback. No delivery-time, authenticity, discount, review, or service guarantees are invented.
+
+## Mobile discovery refinements
+
+The homepage hero links directly to catalog search and up to two collections from the store's catalog. On phones, the catalog keeps search, sort, and applied filters visible and opens the detailed controls on demand. Search defaults to relevance when there is a query and to newest otherwise. When there are no results, the catalog can suggest a single-edit spelling correction that matches the active filters, or offer collection links for browsing.
+
+Product cards show the cheapest available matching variant, or the cheapest matching variant marked sold out when none is available. Price sorting uses the displayed price. Filtered result links open that variant and preserve the filter URL for the return link. The product page falls back to the current catalog when a linked variant is no longer present.
+
+Cart and checkout both explain that the shipping fee appears after placing the order and before payment. A pre-order shipping quote would require API support. The storefront indexing policy remains a separate release decision.
 
 Verification commands:
 

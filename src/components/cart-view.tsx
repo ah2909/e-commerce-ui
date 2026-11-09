@@ -130,7 +130,7 @@ export function CartView() {
                 {
                   Icon: PackageCheck,
                   title: "Kiểm tra trước khi đặt",
-                  text: "Phí giao hàng và tổng tiền được hiển thị tại bước đặt hàng.",
+                  text: "Xem phí giao hàng và tổng tiền trên trang đơn hàng trước khi thanh toán.",
                 },
               ].map(({ Icon, title, text }) => (
                 <div className="cart-shopping-note" key={title}>
@@ -269,7 +269,7 @@ export function CartView() {
                 </div>
                 <div className="cart-shipping-estimate">
                   <PackageCheck size={19} aria-hidden="true" />
-                  <p>Phí giao hàng được hiển thị sau khi chọn địa chỉ ở bước đặt hàng.</p>
+                  <p>Phí giao hàng được hiển thị sau khi đặt đơn, trước khi thanh toán.</p>
                 </div>
                 <div className="cart-summary-total">
                   <span>Tạm tính sản phẩm</span>

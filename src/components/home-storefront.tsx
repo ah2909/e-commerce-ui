@@ -5,8 +5,10 @@ import { CatalogResults, ProductImage } from "@/components/catalog";
 import { useStoreCatalog } from "@/components/store-catalog";
 import { ErrorNotice, Loading } from "@/components/ui";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { brandOf, emptyFilters, filterCatalog, normalizeSearch } from "@/lib/catalog";
-import { ArrowUpRight, PackageCheck, Ruler, Shirt, ShoppingBag } from "lucide-react";
+import { ArrowUpRight, PackageCheck, Ruler, Search, Shirt, ShoppingBag } from "lucide-react";
+import Form from "next/form";
 import Link from "next/link";
 
 export function HomeStorefront() {
@@ -32,6 +34,13 @@ export function HomeStorefront() {
   const jerseys = inCategory(jerseyCategory);
   const boots = inCategory(bootCategory);
   const football = jerseys.length > 0;
+  const quickCategories = (
+    football
+      ? [jerseyCategory, bootCategory].flatMap((slug) =>
+          categories.filter((item) => item.slug === slug),
+        )
+      : categories
+  ).slice(0, 2);
   const highlights = football
     ? [jerseys.find((product) => /real madrid/i.test(product.name)) || jerseys[0], boots[0]].filter(
         Boolean,
@@ -74,7 +83,41 @@ export function HomeStorefront() {
   const brands = [...new Set(products.map(brandOf).filter(Boolean))];
   return (
     <>
-      <StoreHero appearance={appearance} highlights={highlights} />
+      <StoreHero
+        appearance={appearance}
+        highlights={highlights}
+        discovery={
+          <div className="home-discovery">
+            <Form action="/products" role="search" aria-label="Tìm sản phẩm trong cửa hàng">
+              <label className="catalog-search">
+                <span className="sr-only">Tìm sản phẩm</span>
+                <Search size={20} aria-hidden="true" />
+                <Input
+                  className="pl-11"
+                  type="search"
+                  name="q"
+                  placeholder="Tên sản phẩm, thương hiệu, mã SKU…"
+                />
+              </label>
+              <Button type="submit">Tìm</Button>
+            </Form>
+            <nav className="home-discovery-links" aria-label="Mua theo bộ sưu tập">
+              {quickCategories.map((category) => (
+                <Button asChild variant="outline" key={category.slug}>
+                  <Link href={{ pathname: "/products", query: { category: category.slug } }}>
+                    {category.name}
+                  </Link>
+                </Button>
+              ))}
+              <Button asChild variant="link">
+                <Link href="/products">
+                  Xem tất cả <ArrowUpRight size={16} aria-hidden="true" />
+                </Link>
+              </Button>
+            </nav>
+          </div>
+        }
+      />
       {!!products.length && (
         <div className="store-facts" aria-label="Khám phá cửa hàng">
           <div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { request } from "@/lib/api/client";
+import { ErrorNotice } from "@/components/ui";
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import {
   createContext,
@@ -56,6 +57,13 @@ function SessionProvider({ children, client }: { children: ReactNode; client: Qu
     }
     await query.refetch();
   }
+  if (query.isError)
+    return (
+      <main className="commerce-container">
+        <h1>Chưa thể mở cửa hàng</h1>
+        <ErrorNotice error={query.error} retry={() => void query.refetch()} />
+      </main>
+    );
   return (
     <SessionContext.Provider
       value={{

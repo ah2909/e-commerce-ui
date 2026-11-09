@@ -13,10 +13,13 @@ import { money } from "@/lib/commerce";
 import { useQuery } from "@tanstack/react-query";
 import {
   brandOf,
+  catalogQuery,
   emptyFilters,
   filterCatalog,
+  preferredCatalogVariant,
   priceBound,
   readFilters,
+  suggestCatalogSearch,
   type CatalogFilters,
 } from "@/lib/catalog";
 import {
@@ -66,14 +69,13 @@ export function ProductImage({
   );
 }
 
-export function Catalog({ featured = false }: { featured?: boolean }) {
+export function Catalog() {
   const query = useStoreCatalog();
   const searchParams = useSearchParams();
-  const filters = featured
-    ? emptyFilters
-    : readFilters(new URLSearchParams(searchParams.toString()));
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filters = readFilters(new URLSearchParams(searchParams.toString()));
   function change(key: keyof CatalogFilters, value: string) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(window.location.search);
     if (!value || value === emptyFilters[key]) params.delete(key);
     else params.set(key, value);
     window.history.replaceState(
@@ -115,38 +117,62 @@ export function Catalog({ featured = false }: { featured?: boolean }) {
     priceBound(filters.min) !== undefined &&
     priceBound(filters.max) !== undefined &&
     Number(filters.min) > Number(filters.max);
-  const active = Object.entries(filters).filter(
-    ([key, value]) => value !== emptyFilters[key as keyof CatalogFilters],
-  );
+  const active = Object.entries(catalogQuery(filters));
+  const filterCount = active.filter(([key]) => key !== "q" && key !== "sort").length;
+  const suggestion =
+    !results.length && !invalidRange && filters.q.trim()
+      ? suggestCatalogSearch(products, filters)
+      : undefined;
+  const nearbyCategories = categories
+    .filter((category) => category.slug !== filters.category)
+    .slice(0, 3);
   return (
     <>
-      {!featured && (
-        <section className="catalog-controls" aria-label="Tìm kiếm và lọc sản phẩm">
-          <div className="catalog-search-row">
-            <Label className="catalog-search block">
-              <span className="sr-only">Tìm sản phẩm</span>
-              <Search size={20} aria-hidden="true" />
-              <Input
-                className="pl-11"
-                type="search"
-                placeholder="Tìm tên đội bóng, sản phẩm, mã SKU…"
-                value={filters.q}
-                onChange={(event) => change("q", event.target.value)}
-              />
-            </Label>
+      <section className="catalog-controls" aria-label="Tìm kiếm và lọc sản phẩm">
+        <div className="catalog-search-row">
+          <Label className="catalog-search block">
+            <span className="sr-only">Tìm sản phẩm</span>
+            <Search size={20} aria-hidden="true" />
+            <Input
+              className="pl-11"
+              type="search"
+              placeholder="Tên sản phẩm, thương hiệu, mã SKU…"
+              value={filters.q}
+              onChange={(event) => change("q", event.target.value)}
+            />
+          </Label>
+          <div className="catalog-toolbar">
+            <Button
+              type="button"
+              variant="outline"
+              className="hidden min-h-11 max-[640px]:inline-flex"
+              aria-expanded={filtersOpen}
+              aria-controls="catalog-filters"
+              onClick={() => setFiltersOpen((open) => !open)}
+            >
+              <SlidersHorizontal size={16} aria-hidden="true" />
+              Lọc{filterCount > 0 ? ` (${filterCount})` : ""}
+            </Button>
             <Label className="catalog-sort flex-col gap-0">
               <span>Sắp xếp</span>
               <NativeSelect
                 value={filters.sort}
                 onChange={(event) => change("sort", event.target.value)}
               >
-                <NativeSelectOption value="newest">Mới nhất</NativeSelectOption>
+                <NativeSelectOption value="">
+                  {filters.q.trim() ? "Phù hợp nhất" : "Mới nhất"}
+                </NativeSelectOption>
+                {filters.q.trim() || filters.sort === "newest" ? (
+                  <NativeSelectOption value="newest">Mới nhất trước</NativeSelectOption>
+                ) : null}
                 <NativeSelectOption value="price-asc">Giá: thấp đến cao</NativeSelectOption>
                 <NativeSelectOption value="price-desc">Giá: cao đến thấp</NativeSelectOption>
                 <NativeSelectOption value="name-asc">Tên: A đến Z</NativeSelectOption>
               </NativeSelect>
             </Label>
           </div>
+        </div>
+        <div id="catalog-filters" className="catalog-filter-panel" data-open={filtersOpen}>
           <div className="catalog-filter-grid">
             <Label className="field">
               <span>Thương hiệu</span>
@@ -228,80 +254,104 @@ export function Catalog({ featured = false }: { featured?: boolean }) {
               />
               Chỉ xem sản phẩm còn hàng
             </label>
-            <span>
-              <SlidersHorizontal size={15} aria-hidden="true" /> Lọc trên toàn bộ danh mục
-            </span>
           </div>
-          {invalidRange && (
-            <p id="price-range-error" role="alert">
-              Giá đến phải lớn hơn hoặc bằng giá từ.
-            </p>
-          )}
-          {!!active.length && (
-            <div className="filter-chips">
-              {active.map(([key, value]) => (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  key={key}
-                  onClick={() =>
-                    change(key as keyof CatalogFilters, emptyFilters[key as keyof CatalogFilters])
-                  }
-                >
-                  {key === "category"
-                    ? categories.find((category) => category.slug === value)?.name || value
-                    : key === "stock"
-                      ? "Còn hàng"
-                      : key === "min"
-                        ? `Từ ${money(priceBound(value))}`
-                        : key === "max"
-                          ? `Đến ${money(priceBound(value))}`
-                          : key === "sort"
-                            ? {
-                                "price-asc": "Giá tăng dần",
-                                "price-desc": "Giá giảm dần",
-                                "name-asc": "Tên A–Z",
-                              }[value] || value
-                            : value}
-                  <X size={14} aria-hidden="true" />
-                  <span className="sr-only">Xóa bộ lọc</span>
-                </Button>
-              ))}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.history.replaceState(null, "", window.location.pathname)}
-              >
-                Xóa tất cả
-              </Button>
-            </div>
-          )}
-        </section>
-      )}
-      {!featured && (
-        <div className="catalog-result-heading">
-          <p role="status" aria-live="polite">
-            <strong>{results.length}</strong> sản phẩm
-            {active.length
-              ? ` phù hợp · ${products.length} sản phẩm trong cửa hàng`
-              : " để bạn khám phá"}
-          </p>
         </div>
-      )}
+        {invalidRange && (
+          <p id="price-range-error" role="alert">
+            Giá đến phải lớn hơn hoặc bằng giá từ.
+          </p>
+        )}
+        {!!active.length && (
+          <div className="filter-chips">
+            {active.map(([key, value]) => (
+              <Button
+                variant="outline"
+                size="sm"
+                key={key}
+                onClick={() =>
+                  change(key as keyof CatalogFilters, emptyFilters[key as keyof CatalogFilters])
+                }
+              >
+                {key === "category"
+                  ? categories.find((category) => category.slug === value)?.name || value
+                  : key === "stock"
+                    ? "Còn hàng"
+                    : key === "min"
+                      ? `Từ ${money(priceBound(value))}`
+                      : key === "max"
+                        ? `Đến ${money(priceBound(value))}`
+                        : key === "sort"
+                          ? {
+                              "price-asc": "Giá tăng dần",
+                              "price-desc": "Giá giảm dần",
+                              "name-asc": "Tên A–Z",
+                              newest: "Mới nhất trước",
+                            }[value] || value
+                          : value}
+                <X size={14} aria-hidden="true" />
+                <span className="sr-only">Xóa bộ lọc</span>
+              </Button>
+            ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.history.replaceState(null, "", window.location.pathname)}
+            >
+              Xóa tất cả
+            </Button>
+          </div>
+        )}
+      </section>
+      <div className="catalog-result-heading">
+        <p role="status" aria-live="polite">
+          <strong>{results.length}</strong> sản phẩm
+          {active.length
+            ? ` phù hợp · ${products.length} sản phẩm trong cửa hàng`
+            : " để bạn khám phá"}
+        </p>
+      </div>
       {!results.length ? (
         <Empty>
           <Search size={28} aria-hidden="true" />
           <h2>Chưa tìm thấy sản phẩm phù hợp</h2>
-          <p>Thử đổi từ khóa hoặc mở rộng khoảng giá và bộ lọc.</p>
-          <Button
-            variant="outline"
-            onClick={() => window.history.replaceState(null, "", window.location.pathname)}
-          >
-            Xóa bộ lọc
-          </Button>
+          <p>
+            {filters.q.trim() ? `Không có kết quả cho “${filters.q.trim()}”. ` : ""}
+            Thử đổi từ khóa hoặc mở rộng khoảng giá và bộ lọc.
+          </p>
+          <div className="actions">
+            {suggestion && (
+              <Button onClick={() => change("q", suggestion)}>Tìm “{suggestion}”</Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                const params = new URLSearchParams(
+                  filters.q.trim() && filterCount ? { q: filters.q } : {},
+                );
+                window.history.replaceState(
+                  null,
+                  "",
+                  `/products${params.size ? `?${params}` : ""}`,
+                );
+              }}
+            >
+              {filterCount ? "Xóa bộ lọc" : "Xem tất cả sản phẩm"}
+            </Button>
+          </div>
+          {!suggestion && !!nearbyCategories.length && (
+            <div className="actions" aria-label="Bộ sưu tập khác">
+              {nearbyCategories.map((category) => (
+                <Button asChild variant="ghost" key={category.slug}>
+                  <Link href={{ pathname: "/products", query: { category: category.slug } }}>
+                    {category.name}
+                  </Link>
+                </Button>
+              ))}
+            </div>
+          )}
         </Empty>
       ) : (
-        <CatalogResults key={JSON.stringify(filters)} results={results} featured={featured} />
+        <CatalogResults key={JSON.stringify(filters)} results={results} filters={filters} />
       )}
     </>
   );
@@ -309,21 +359,28 @@ export function Catalog({ featured = false }: { featured?: boolean }) {
 
 export function CatalogResults({
   results,
-  featured,
+  featured = false,
+  filters = emptyFilters,
 }: {
   results: ReturnType<typeof filterCatalog>;
-  featured: boolean;
+  featured?: boolean;
+  filters?: CatalogFilters;
 }) {
   const [visible, setVisible] = useState(featured ? 4 : 24);
+  const search = catalogQuery(filters);
+  const hasSearchContext = Object.keys(search).length > 0;
   return (
     <>
       <div className="product-grid">
-        {results.slice(0, visible).map(({ product, price, inStock, brand }) => {
+        {results.slice(0, visible).map(({ product, variant, price, inStock, brand }) => {
           return (
             <Link
               className="product-card"
               key={product.product_id}
-              href={`/products/${encodeURIComponent(product.slug)}`}
+              href={{
+                pathname: `/products/${encodeURIComponent(product.slug)}`,
+                query: hasSearchContext ? { ...search, variant: variant.variant_id } : undefined,
+              }}
             >
               <ProductImage media={product.media} name={product.name} />
               {brand && <span className="product-brand">{brand}</span>}
@@ -349,7 +406,15 @@ export function CatalogResults({
   );
 }
 
-export function ProductDetail({ slug }: { slug: string }) {
+export function ProductDetail({
+  slug,
+  preferredVariantID,
+  returnFilters,
+}: {
+  slug: string;
+  preferredVariantID?: string;
+  returnFilters: Record<string, string>;
+}) {
   const { scope, ready, session, changeSession } = useSession();
   const [variantID, setVariantID] = useState<string>();
   const [quantity, setQuantity] = useState(1);
@@ -369,10 +434,9 @@ export function ProductDetail({ slug }: { slug: string }) {
   if (query.error) return <ErrorNotice error={query.error} retry={() => void query.refetch()} />;
   const product = query.data;
   const variant =
-    product.variants.find((v) => v.variant_id === variantID) ||
-    product.variants.find((v) => v.in_stock) ||
-    product.variants[0];
-  async function add() {
+    product.variants.find((v) => v.variant_id === (variantID ?? preferredVariantID)) ||
+    preferredCatalogVariant(product.variants);
+  async function add(option: Schema["PublicCatalogVariant"]) {
     if (session.kind === "anonymous") {
       const guest = await action.run("/api/v1/guest-sessions", "POST");
       if (!guest) return;
@@ -380,20 +444,27 @@ export function ProductDetail({ slug }: { slug: string }) {
     }
     const cart = await action.run<Schema["Cart"]>("/api/v1/cart", "POST");
     if (!cart) return;
-    const current = cart.lines.find((l) => l.variant_id === variant.variant_id)?.quantity || 0;
+    const current = cart.lines.find((l) => l.variant_id === option.variant_id)?.quantity || 0;
     if (
-      await action.run(`/api/v1/cart/lines/${variant.variant_id}`, "PUT", {
+      await action.run(`/api/v1/cart/lines/${option.variant_id}`, "PUT", {
         quantity: current + quantity,
         expected_version: cart.version,
       })
     )
       router.push("/cart");
   }
+  if (!variant)
+    return (
+      <Empty>
+        <h1>{product.name}</h1>
+        <p>Sản phẩm chưa có lựa chọn để đặt hàng.</p>
+      </Empty>
+    );
   return (
     <div className="product-detail-page">
-      <Link href="/products" className="customer-back">
+      <Link href={{ pathname: "/products", query: returnFilters }} className="customer-back">
         <ArrowLeft size={16} aria-hidden="true" />
-        Tất cả sản phẩm
+        {Object.keys(returnFilters).length ? "Quay lại kết quả" : "Tất cả sản phẩm"}
       </Link>
       <div className="product-detail-layout">
         <ProductGallery key={product.product_id} product={product} />
@@ -472,7 +543,7 @@ export function ProductDetail({ slug }: { slug: string }) {
                 quantity < 1 ||
                 quantity > 2147483647
               }
-              onClick={() => void add()}
+              onClick={() => void add(variant)}
             >
               <ShoppingBag size={18} aria-hidden="true" />
               {action.pending ? "Đang thêm…" : "Thêm vào giỏ hàng"}

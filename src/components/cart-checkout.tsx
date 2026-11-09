@@ -349,7 +349,7 @@ export function CheckoutView() {
             ))}
             <div className="summary-row checkout-shipping">
               <span>Phí giao hàng</span>
-              <span>Xác nhận khi đặt hàng</span>
+              <span>Hiển thị sau khi đặt đơn</span>
             </div>
             <div className="summary-row total">
               <span>Tạm tính sản phẩm</span>
